@@ -1,0 +1,67 @@
+body,  html {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: #ffffff;
+    transition: all .5s;
+    background: transparent;
+}
+.wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-radius: 10px;
+    background-color: rgba(2, 2, 14, .3);
+}
+svg {
+    width: 22px;
+    fill: #67ec88;
+    height: 22px;
+    opacity: .4;
+}
+button:hover svg {
+    opacity: 1;
+}
+button{
+    border: none;
+    outline: none;
+    background: transparent;
+}
+.grab{
+    /* cursor: grab; */
+    -webkit-app-region: drag;
+}
+.ww {
+    display: flex;
+    align-items: center;
+}
+svg.mute {
+    fill: #ff0000;
+}
+.close {
+    width: 18px;
+    height: 18px;
+    position: relative;
+    top: 2px;
+}
+.close:hover{
+    fill: #ff0000;
+}
+
+#save {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #67ec883d;
+    border-radius: 5px;
+    color: #fff;
+    margin-left: 10px;
+}
+#save span {
+    opacity: 1;
+}

@@ -1,5 +1,4 @@
 const { ipcRenderer, remote } = require('electron')
-// const domify = require('domify')
 
 let localStream
 let microAudioStream
@@ -7,6 +6,8 @@ let recordedChunks = []
 let numRecordedChunks = 0
 let recorder
 let interval;
+let saved = false;
+let paused = false;
 
 let $body;
 let $tiktok;
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const playVideo = () => {
     remote.dialog.showOpenDialog({ properties: ['openFile'] }, (filename) => {
-        console.log(filename)
+        // console.log(filename)
         let video = document.querySelector('video')
         video.muted = false
         video.src = filename
@@ -53,6 +54,7 @@ const startNew = () => {
     $body.classList.remove("b-recorded")
     $body.classList.add("b-pre-record")
     $tiktok.innerHTML = "00:00:00"
+    cleanRecord()
 }
 const cleanRecord = () => {
     let video = document.querySelector('video');
@@ -63,9 +65,33 @@ const cleanRecord = () => {
 
 ipcRenderer.on('source-id-selected', (event, sourceId) => {
     if (!sourceId) return
-    console.log(sourceId)
+    // console.log(sourceId)
     onAccessApproved(sourceId)
 })
+ipcRenderer.on('save', (event) => {
+    if(!saved){
+        stopRecording()
+    }
+})
+ipcRenderer.on('mute', (event, isMuted) => {
+    $audioCheckbox.checked = isMuted
+    if(localStream){
+        const audioTracks = localStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+            audioTracks[0].enabled = !isMuted;
+        }
+    }
+    // microAudioCheck()
+})
+ipcRenderer.on('pauseState', (event, isPaused) => {
+    paused = isPaused
+    if(isPaused){
+        recorder.pause()
+    }else {
+        recorder.resume();
+    }
+})
+
 
 const recordDesktop = () => {
     cleanRecord()
@@ -73,6 +99,9 @@ const recordDesktop = () => {
 }
 
 const recorderOnDataAvailable = (event) => {
+    if(paused){
+        return;
+    }
     if (event.data && event.data.size > 0) {
         recordedChunks.push(event.data)
         numRecordedChunks += event.data.byteLength
@@ -80,16 +109,19 @@ const recorderOnDataAvailable = (event) => {
 }
 
 const stopRecording = () => {
-    console.log('Stopping record and starting download')
     recorder.stop()
     localStream.getVideoTracks()[0].stop()
 
     $body.classList.remove("b-pre-record")
     $body.classList.remove("b-recording")
     $body.classList.add("b-recorded")
+    saved = true
+    clearInterval(interval)
     setTimeout(() => {
         play()
     }, 100);
+
+    ipcRenderer.send('save', {main: true})
 }
 
 const play = () => {
@@ -118,28 +150,29 @@ const download = () => {
 
 const getMediaStream = (stream) => {
     let video = document.querySelector('video')
+    saved = false
     // video.src = stream
     localStream = stream
-    stream.onended = () => { console.log('Media stream ended.') }
+    // stream.onended = () => { console.log('Media stream ended.') }
 
     let videoTracks = localStream.getVideoTracks()
 
     if ($audioCheckbox.checked) {
-        console.log('Adding audio track.')
+        // console.log('Adding audio track.')
         let audioTracks = microAudioStream.getAudioTracks()
         localStream.addTrack(audioTracks[0])
     }
     try {
-        console.log('Start recording the stream.')
+        // console.log('Start recording the stream.')
         recorder = new MediaRecorder(stream)
     } catch (e) {
         console.assert(false, 'Exception while creating MediaRecorder: ' + e)
         return
     }
     recorder.ondataavailable = recorderOnDataAvailable
-    recorder.onstop = () => { console.log('recorderOnStop fired') }
+    // recorder.onstop = () => { console.log('recorderOnStop fired') }
     recorder.start()
-    console.log('Recorder is started.')
+    // console.log('Recorder is started.')
 
     // disableButtons()
     $body.classList.remove("b-pre-record")
@@ -148,8 +181,13 @@ const getMediaStream = (stream) => {
     recordingTime = 0
     clearInterval(interval)
     interval = setInterval(() => {
-        recordingTime += 1
-        $tiktok.innerHTML = formatTime(recordingTime)
+        if(!saved && !paused){
+            recordingTime += 1
+            const fmt = formatTime(recordingTime)
+            $tiktok.innerHTML = fmt
+            // send to small window
+            ipcRenderer.send('record-tik-tok', { time: fmt })
+        }
     }, 1000);
 
 
@@ -171,21 +209,21 @@ function formatTime(seconds) {
 }
 
 const getMicroAudio = (stream) => {
-    console.log('Received audio stream.')
+    // console.log('Received audio stream.')
     microAudioStream = stream
-    stream.onended = () => { console.log('Micro audio ended.') }
+    // stream.onended = () => { console.log('Micro audio ended.') }
 }
 
 const getUserMediaError = () => {
-    console.log('getUserMedia() failed.')
+    // console.log('getUserMedia() failed.')
 }
 
 const onAccessApproved = (id) => {
     if (!id) {
-        console.log('Access rejected.')
+        // console.log('Access rejected.')
         return
     }
-    console.log('Window ID: ', id)
+    // console.log('Window ID: ', id)
     navigator.webkitGetUserMedia({
         audio: false,
         video: {
