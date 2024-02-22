@@ -43,7 +43,7 @@ const createWindow = () => {
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 };
 
 
@@ -92,5 +92,6 @@ ipcMain.on('source-id-selected', (event, sourceId) => {
 
 ipcMain.on('recording', (event, sourceId) => {
   pickerDialog.close()
-  mainWindow.minimize()
+  // mainWindow.minimize()
+  BrowserWindow?.getFocusedWindow()?.minimize()
 })

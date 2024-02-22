@@ -1,4 +1,4 @@
-const { desktopCapturer, ipcRenderer, remote } = require('electron')
+const { ipcRenderer, remote } = require('electron')
 // const domify = require('domify')
 
 let localStream
@@ -42,15 +42,17 @@ const playVideo = () => {
 const microAudioCheck = () => {
     var video = document.querySelector('video')
     video.muted = true
-    if ($audioCheckbox.checked) {
-        navigator.webkitGetUserMedia({ audio: true, video: false }, getMicroAudio, getUserMediaError)
-    }
+    setTimeout(() => {
+        if ($audioCheckbox.checked) {
+            navigator.webkitGetUserMedia({ audio: true, video: false }, getMicroAudio, getUserMediaError)
+        }
+    }, 10);
 }
 const startNew = () => {
     $body.classList.remove("b-recording")
     $body.classList.remove("b-recorded")
     $body.classList.add("b-pre-record")
-    $tiktok.innerHTML = formatTime("00:00:00")
+    $tiktok.innerHTML = "00:00:00"
 }
 const cleanRecord = () => {
     let video = document.querySelector('video');

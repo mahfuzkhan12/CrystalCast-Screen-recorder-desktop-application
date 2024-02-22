@@ -300,3 +300,20 @@ video {
     align-items: center;
     justify-content: center;
 }
+
+
+
+
+.watermark {
+    position: absolute;
+    top: inherit;
+    bottom: 5px;
+    width: 100%;
+    text-align: center;
+    color: darkgrey;
+}
+.watermark span {
+    color: #67ec88;
+    font-size: 18px;
+    font-weight: bold;
+}
