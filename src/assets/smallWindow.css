@@ -1,7 +1,7 @@
 body,  html {
     margin: 0;
     padding: 0;
-    font-size: 14px;
+    font-size: 12px;
     font-family: sans-serif;
     font-weight: bold;
     color: #ffffff;
@@ -15,13 +15,13 @@ body,  html {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    border-radius: 10px;
-    background-color: rgba(2, 2, 14, .3);
+    border-radius: 4px;
+    background-color: rgba(2, 2, 14, .7);
 }
 svg {
-    width: 22px;
+    width: 18px;
     fill: #67ec88;
-    height: 22px;
+    height: 18px;
     opacity: .4;
 }
 button:hover svg {
@@ -34,7 +34,9 @@ button{
 }
 .grab{
     /* cursor: grab; */
+    -webkit-user-select: none;
     -webkit-app-region: drag;
+    opacity: 1;
 }
 .ww {
     display: flex;
@@ -44,8 +46,8 @@ svg.mute {
     fill: #ff0000;
 }
 .close {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     position: relative;
     top: 2px;
 }

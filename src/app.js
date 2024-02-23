@@ -58,7 +58,9 @@ const startNew = () => {
 }
 const cleanRecord = () => {
     let video = document.querySelector('video');
+    video.pause();
     video.controls = false;
+    video.src = '';
     recordedChunks = []
     numRecordedChunks = 0
 }
@@ -66,7 +68,9 @@ const cleanRecord = () => {
 ipcRenderer.on('source-id-selected', (event, sourceId) => {
     if (!sourceId) return
     // console.log(sourceId)
-    onAccessApproved(sourceId)
+    setTimeout(() => {
+        onAccessApproved(sourceId)
+    }, 100);
 })
 ipcRenderer.on('save', (event) => {
     if(!saved){
@@ -145,7 +149,7 @@ const download = () => {
     setTimeout(function () {
         document.body.removeChild(a)
         window.URL.revokeObjectURL(url)
-    }, 100)
+    }, 20)
 }
 
 const getMediaStream = (stream) => {
@@ -171,13 +175,10 @@ const getMediaStream = (stream) => {
     }
     recorder.ondataavailable = recorderOnDataAvailable
     // recorder.onstop = () => { console.log('recorderOnStop fired') }
+    
+
     recorder.start()
     // console.log('Recorder is started.')
-
-    // disableButtons()
-    $body.classList.remove("b-pre-record")
-    $body.classList.add("b-recording")
-
     recordingTime = 0
     clearInterval(interval)
     interval = setInterval(() => {
@@ -190,6 +191,10 @@ const getMediaStream = (stream) => {
         }
     }, 1000);
 
+
+    // disableButtons()
+    $body.classList.remove("b-pre-record")
+    $body.classList.add("b-recording")
 
     // close window 
     ipcRenderer.send('recording', { type: "close" })

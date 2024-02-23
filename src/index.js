@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, Menu, screen } = require('electron');
 const path = require('path');
 
 if (require('electron-squirrel-startup')) {
@@ -31,6 +31,36 @@ let mainWindow
 let pickerDialog
 let smallWindow;
 
+
+const createSmallWindow = () => {
+    const screenWidth = screen.getPrimaryDisplay().size.width;
+    const screenHeight = screen.getPrimaryDisplay().size.height;
+    const windowWidth = 280;
+    const windowHeight = 33;
+    const windowX = Math.floor((screenWidth - windowWidth) / 2);
+    const windowY = screenHeight - 85;
+
+    smallWindow = new BrowserWindow({
+        width: windowWidth,
+        height: windowHeight,
+        transparent: true,
+        alwaysOnTop: true,
+        autoHideMenuBar: true,
+        x: windowX,
+        y: windowY,
+        webPreferences: {
+            preload: path.join(__dirname, 'smallWindow.js'),
+        },
+        frame: false,
+        closable: true,
+        fullscreenable: false,
+        maximizable: false,
+        resizable: false,
+    });
+
+    smallWindow.loadFile(path.join(__dirname, 'renderer/smallWindow.html'));
+}
+
 const createWindow = () => {
     mainWindow = new BrowserWindow({
         height: 600,
@@ -43,10 +73,6 @@ const createWindow = () => {
         },
     });
     mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
-
-
-    // Open the DevTools.
-    // mainWindow.webContents.openDevTools();
     // smallWindow.webContents.openDevTools();
 };
 
@@ -79,32 +105,35 @@ ipcMain.on('show-picker', (event, options) => {
             preload: path.join(__dirname, 'picker.js'),
         },
     })
-    pickerDialog.show()
     pickerDialog.loadFile(path.join(__dirname, 'renderer/picker.html'));
-    // pickerDialog.webContents.openDevTools();
 
     desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
-        pickerDialog.webContents.send('get-sources', sources)
+        console.log(sources);
+
+        const filteredSources = sources.filter(source => source.name !== "CrystalCast - Scree Recorder");
+        pickerDialog.webContents.send('get-sources', filteredSources)
     })
 })
 
 ipcMain.on('source-id-selected', (event, sourceId) => {
-    pickerDialog.hide()
+    if (pickerDialog && !pickerDialog.isDestroyed()) {
+        pickerDialog.close()
+    }
     mainWindow.webContents.send('source-id-selected', sourceId)
 })
 
 
 ipcMain.on('close-small', (event, sourceId) => {
-    if (smallWindow && !smallWindow.isDestroyed()) {
-        smallWindow.close();
+    if (smallWindow && !smallWindow?.isDestroyed()) {
+        smallWindow?.close();
     }
 })
 
 ipcMain.on('save', (event, data) => {
-    if (smallWindow && !smallWindow.isDestroyed()) {
-        smallWindow.close();
+    if (smallWindow && !smallWindow?.isDestroyed()) {
+        smallWindow?.close();
     }
-    if(!data.main){
+    if(!data?.main){
         mainWindow.webContents.send('save')
     }
     mainWindow.show()
@@ -116,37 +145,14 @@ ipcMain.on('pauseState', (event, isPaused) => {
     mainWindow.webContents.send('pauseState', isPaused)
 })
 ipcMain.on('recording', (event, sourceId) => {
-    if (pickerDialog && !pickerDialog.isDestroyed()) {
-        pickerDialog.close()
+    if (pickerDialog && !pickerDialog?.isDestroyed()) {
+        pickerDialog?.close()
     }
     // mainWindow.minimize()
     mainWindow.hide()
     // BrowserWindow?.getFocusedWindow()?.minimize()
 
-
-    // small window
-    smallWindow = new BrowserWindow({
-        width: 300,
-        height: 48,
-        transparent: true,
-        alwaysOnTop: true,
-        autoHideMenuBar: true,
-        x: Math.floor((require('electron').screen.getPrimaryDisplay().size.width - 300) / 2),
-        y: require('electron').screen.getPrimaryDisplay().size.height - 100,
-        webPreferences: {
-            preload: path.join(__dirname, 'smallWindow.js'),
-        },
-        
-        frame: false,
-        focusable: false, 
-        closable: true,
-        fullscreenable: false,
-        maximizable: false,
-        resizable: false,
-    });
-    // smallWindow.webContents.openDevTools();
-    smallWindow.loadFile(path.join(__dirname, 'renderer/smallWindow.html'));
-
+    createSmallWindow()
 })
 ipcMain.on('record-tik-tok', (event, message) => {
     if(smallWindow){
