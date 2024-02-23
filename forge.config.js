@@ -1,6 +1,5 @@
 module.exports = {
     packagerConfig: {
-        executableName: "CrystalCast",
         asar: true,
     },
     rebuildConfig: {},

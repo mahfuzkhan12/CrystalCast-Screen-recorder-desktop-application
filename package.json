@@ -1,10 +1,9 @@
 {
-  "name": "CrystalCast",
-  "productName": "CrystalCast",
+  "name": "test-app-with-cli",
+  "productName": "test-app-with-cli",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": "src/index.js",
-  "asar":true,
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
